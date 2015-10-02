@@ -86,6 +86,12 @@ def main(argv):
         help="Image file extension to take as input when a directory " +
              "is given as the input file."
     )
+    parser.add_argument(
+	"--print_results",
+	action='store_true',
+	help="Write output text to stdout rather than serializing to a file"
+    )
+
     args = parser.parse_args()
 
     image_dims = [int(s) for s in args.images_dim.split(',')]
