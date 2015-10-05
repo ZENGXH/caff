@@ -73,8 +73,11 @@ def get_layer_label(layer, rankdir):
         # If graph orientation is horizontal, vertical space is free and
         # horizontal space is not; separate words with newlines
         separator = '\\n'
+    node_label = '"%s%s(%s)"' % (layer.name, separator, layer.type)
+    return node_label   
 
-    if layer.type == 'Convolution' or layer.type == 'Deconvolution':
+ 
+    """if layer.type == 'Convolution' or layer.type == 'Deconvolution':
         # Outer double quotes needed or else colon characters don't parse
         # properly
         node_label = '"%s%s(%s)%skernel size: %d%sstride: %d%spad: %d"' %\
@@ -100,10 +103,10 @@ def get_layer_label(layer, rankdir):
                       layer.pooling_param.stride,
                       separator,
                       layer.pooling_param.pad)
-    else:
-        node_label = '"%s%s(%s)"' % (layer.name, separator, layer.type)
-    return node_label
-
+   else:
+   """
+#   node_label = '"%s%s(%s)"' % (layer.name, separator, layer.type)
+#   return node_label
 
 def choose_color_by_layertype(layertype):
     """Define colors for nodes based on the layer type.
