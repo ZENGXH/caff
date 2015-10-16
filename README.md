@@ -1,3 +1,9 @@
+# Caffe feature extraction in python API
+
+Build a python API for the output of different layers of the image and save it as .mat file for matab
+
+
+
 # Caffe
 
 Caffe is a deep learning framework made with expression, speed, and modularity in mind.
