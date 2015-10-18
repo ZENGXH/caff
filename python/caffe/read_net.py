@@ -14,10 +14,11 @@ from caffe.proto import caffe_pb2
 PATH2MODEL = '../models/'
 prototxt = '/deploy.prototxt'
 
-def get(input_net_proto_file):
+
+def get(MODEL):
+    input_net_proto_file = PATH2MODEL + MODEL + prototxt
 
     caffe_net = caffe_pb2.NetParameter()
-    input_net_proto_file = PATH2MODEL + input_net_proto_file + prototxt
 
     text_format.Merge(open(input_net_proto_file).read(), caffe_net)
 
