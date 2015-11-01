@@ -125,7 +125,9 @@ class DummyDataLayer : public Layer<Dtype> {
   // Data layers have no bottoms, so reshaping is trivial.
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {}
-
+  virtual inline LayerParameter_LayerType type() const{
+	return LayerParameter_LayerType_DUMMY_DATA;
+  }
   virtual inline const char* type() const { return "DummyData"; }
   virtual inline int ExactNumBottomBlobs() const { return 0; }
   virtual inline int MinTopBlobs() const { return 1; }

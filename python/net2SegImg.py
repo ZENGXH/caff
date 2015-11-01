@@ -1,6 +1,7 @@
-import caffe.read_net
-import caffe.get_net
-
+#import caffe.read_net
+#import caffe.get_net
+#import caffe.Segmenter
+import caffe
 import scipy.io as sio
 import numpy as np
 import re
@@ -20,16 +21,28 @@ from PIL import Image
 import cStringIO as StringIO
 import caffe.exifutil # from examples/web_demo/exifull.py
 
+# arg: name_of_model name_of_image
 def main(argv):
-	MODEL = argv[1]
+	MODEL_i = argv[1]
+	if MODEL_i == 1:
+		MODEL = 'bvlc_reference_rcnn_ilsvrc13'
+	elif MODEL_i ==2:
+		MODEL = 'fcn-8s-pascal'
+	elif MODEL_i == 3:
+		MODEL = 'fcn-32s-pascal'
+	else:
+		MODEL = 'fcn-8s-pascal'
+	print 'call model '+ MODEL
 	image_name = argv[2]
+
 	#image_name = 'cat'
 	# MODEL = 'VGG'
 	layer_type = 'all_layer'
 	caffe_root = '../'
+	MODEL_PROTO = caffe_root + 'models/' + MODEL + '/' + MODEL + '.prototxt'
 	PRETRAINED = caffe_root + 'models/' + MODEL +'/'+MODEL+'.caffemodel'
 	IMAGE_FILE = '../examples/images/'+image_name+'.jpg'
-	layers = caffe.read_net.get(MODEL)
+	layers = caffe.Read_net(MODEL)
 	# net_data = caffe.get_net.get(MODEL,image_name)
 	pallete = [0,0,0,
            128,0,0,
@@ -60,7 +73,7 @@ def main(argv):
            64,192,0,
            192,192,0]
            
-    net_data = caffe.get_net.get(MODEL,image_name)
+	net_data = caffe.Get_net(MODEL,image_name)
 	
 	# print the prediction for classification model
 #	print("predicted class is #{}.".format(out['prob'][0].argmax()))	
@@ -86,7 +99,7 @@ def main(argv):
 	print('Done. save as ' + matfile)
 
 #########################################
-	net = caffe.Segmenter(MODEL, PRETRAINED, gpu=False)
+	net = caffe.Segmenter(MODEL_PROTO, PRETRAINED, gpu=False)
 	# Mean values in BGR format
 	mean_vec = np.array([103.939, 116.779, 123.68], dtype=np.float32)
 	reshaped_mean_vec = mean_vec.reshape(1,1,3);

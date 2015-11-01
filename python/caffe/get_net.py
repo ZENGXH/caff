@@ -24,7 +24,7 @@ sys.path.insert(0, caffe_root + 'python')
 import caffe
 import os
 # image_name = 'cat'
-def get(MODEL,image_name):
+def Get_net(MODEL,image_name):
 	image_input = caffe_root + 'examples/images/' + image_name + '.jpg'
 #	MODEL = 'bvlc_reference_caffenet'
 

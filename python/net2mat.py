@@ -1,3 +1,4 @@
+import caffe
 import caffe.read_net
 import caffe.get_net
 
@@ -13,8 +14,8 @@ def main(argv):
 	layer_type = 'all_layer'
 	caffe_root = '../'
 
-	layers = caffe.read_net.get(MODEL)
-	net_data = caffe.get_net.get(MODEL,image_name)
+	layers = caffe.Read_net(MODEL)
+	net_data = caffe.Get_net(MODEL,image_name)
 	
 	# print the prediction for classification model
 #	print("predicted class is #{}.".format(out['prob'][0].argmax()))	
