@@ -18,12 +18,12 @@ namespace caffe {
 
 /**
  * @brief Abstract base class that factors out the BLAS code common to
- *        HelloolutionLayer and DeHelloolutionLayer.
+ *        ConvolutionLayer and DeconvolutionLayer.
  */
 template <typename Dtype>
-class BaseHelloolutionLayer : public Layer<Dtype> {
+class BaseConvolutionLayer : public Layer<Dtype> {
  public:
-  explicit BaseHelloolutionLayer(const LayerParameter& param)
+  explicit BaseConvolutionLayer(const LayerParameter& param)
       : Layer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
@@ -62,8 +62,8 @@ class BaseHelloolutionLayer : public Layer<Dtype> {
   inline int input_shape(int i) {
     return (*bottom_shape_)[channel_axis_ + i];
   }
-  // reverse_dimensions should return true iff we are implementing deHello, so
-  // that Hello helpers know which dimensions are which.
+  // reverse_dimensions should return true iff we are implementing deconv, so
+  // that conv helpers know which dimensions are which.
   virtual bool reverse_dimensions() = 0;
   // Compute height_out_ and width_out_ from other parameters.
   virtual void compute_output_shape() = 0;
@@ -74,8 +74,8 @@ class BaseHelloolutionLayer : public Layer<Dtype> {
   Blob<int> stride_;
   /// @brief The spatial dimensions of the padding.
   Blob<int> pad_;
-  /// @brief The spatial dimensions of the Helloolution input.
-  Blob<int> Hello_input_shape_;
+  /// @brief The spatial dimensions of the convolution input.
+  Blob<int> conv_input_shape_;
   /// @brief The spatial dimensions of the col_buffer.
   vector<int> col_buffer_shape_;
   /// @brief The spatial dimensions of the output.
@@ -99,57 +99,57 @@ class BaseHelloolutionLayer : public Layer<Dtype> {
 
  private:
   // wrap im2col/col2im so we don't have to remember the (long) argument lists
-  inline void Hello_im2col_cpu(const Dtype* data, Dtype* col_buff) {
+  inline void conv_im2col_cpu(const Dtype* data, Dtype* col_buff) {
     if (!force_nd_im2col_ && num_spatial_axes_ == 2) {
-      im2col_cpu(data, Hello_in_channels_,
-          Hello_input_shape_.cpu_data()[1], Hello_input_shape_.cpu_data()[2],
+      im2col_cpu(data, conv_in_channels_,
+          conv_input_shape_.cpu_data()[1], conv_input_shape_.cpu_data()[2],
           kernel_shape_.cpu_data()[0], kernel_shape_.cpu_data()[1],
           pad_.cpu_data()[0], pad_.cpu_data()[1],
           stride_.cpu_data()[0], stride_.cpu_data()[1], col_buff);
     } else {
-      im2col_nd_cpu(data, num_spatial_axes_, Hello_input_shape_.cpu_data(),
+      im2col_nd_cpu(data, num_spatial_axes_, conv_input_shape_.cpu_data(),
           col_buffer_shape_.data(), kernel_shape_.cpu_data(),
           pad_.cpu_data(), stride_.cpu_data(), col_buff);
     }
   }
-  inline void Hello_col2im_cpu(const Dtype* col_buff, Dtype* data) {
+  inline void conv_col2im_cpu(const Dtype* col_buff, Dtype* data) {
     if (!force_nd_im2col_ && num_spatial_axes_ == 2) {
-      col2im_cpu(col_buff, Hello_in_channels_,
-          Hello_input_shape_.cpu_data()[1], Hello_input_shape_.cpu_data()[2],
+      col2im_cpu(col_buff, conv_in_channels_,
+          conv_input_shape_.cpu_data()[1], conv_input_shape_.cpu_data()[2],
           kernel_shape_.cpu_data()[0], kernel_shape_.cpu_data()[1],
           pad_.cpu_data()[0], pad_.cpu_data()[1],
           stride_.cpu_data()[0], stride_.cpu_data()[1], data);
     } else {
-      col2im_nd_cpu(col_buff, num_spatial_axes_, Hello_input_shape_.cpu_data(),
+      col2im_nd_cpu(col_buff, num_spatial_axes_, conv_input_shape_.cpu_data(),
           col_buffer_shape_.data(), kernel_shape_.cpu_data(),
           pad_.cpu_data(), stride_.cpu_data(), data);
     }
   }
 #ifndef CPU_ONLY
-  inline void Hello_im2col_gpu(const Dtype* data, Dtype* col_buff) {
+  inline void conv_im2col_gpu(const Dtype* data, Dtype* col_buff) {
     if (!force_nd_im2col_ && num_spatial_axes_ == 2) {
-      im2col_gpu(data, Hello_in_channels_,
-          Hello_input_shape_.cpu_data()[1], Hello_input_shape_.cpu_data()[2],
+      im2col_gpu(data, conv_in_channels_,
+          conv_input_shape_.cpu_data()[1], conv_input_shape_.cpu_data()[2],
           kernel_shape_.cpu_data()[0], kernel_shape_.cpu_data()[1],
           pad_.cpu_data()[0], pad_.cpu_data()[1],
           stride_.cpu_data()[0], stride_.cpu_data()[1], col_buff);
     } else {
       im2col_nd_gpu(data, num_spatial_axes_, num_kernels_im2col_,
-          Hello_input_shape_.gpu_data(), col_buffer_.gpu_shape(),
+          conv_input_shape_.gpu_data(), col_buffer_.gpu_shape(),
           kernel_shape_.gpu_data(), pad_.gpu_data(),
           stride_.gpu_data(), col_buff);
     }
   }
-  inline void Hello_col2im_gpu(const Dtype* col_buff, Dtype* data) {
+  inline void conv_col2im_gpu(const Dtype* col_buff, Dtype* data) {
     if (!force_nd_im2col_ && num_spatial_axes_ == 2) {
-      col2im_gpu(col_buff, Hello_in_channels_,
-          Hello_input_shape_.cpu_data()[1], Hello_input_shape_.cpu_data()[2],
+      col2im_gpu(col_buff, conv_in_channels_,
+          conv_input_shape_.cpu_data()[1], conv_input_shape_.cpu_data()[2],
           kernel_shape_.cpu_data()[0], kernel_shape_.cpu_data()[1],
           pad_.cpu_data()[0], pad_.cpu_data()[1],
           stride_.cpu_data()[0], stride_.cpu_data()[1], data);
     } else {
       col2im_nd_gpu(col_buff, num_spatial_axes_, num_kernels_col2im_,
-          Hello_input_shape_.gpu_data(), col_buffer_.gpu_shape(),
+          conv_input_shape_.gpu_data(), col_buffer_.gpu_shape(),
           kernel_shape_.gpu_data(), pad_.gpu_data(), stride_.gpu_data(),
           data);
     }
@@ -158,9 +158,9 @@ class BaseHelloolutionLayer : public Layer<Dtype> {
 
   int num_kernels_im2col_;
   int num_kernels_col2im_;
-  int Hello_out_channels_;
-  int Hello_in_channels_;
-  int Hello_out_spatial_dim_;
+  int conv_out_channels_;
+  int conv_in_channels_;
+  int conv_out_spatial_dim_;
   int kernel_dim_;
   int col_offset_;
   int output_offset_;
@@ -170,10 +170,10 @@ class BaseHelloolutionLayer : public Layer<Dtype> {
 };
 
 /**
- * @brief Helloolves the input image with a bank of learned filters,
+ * @brief Convolves the input image with a bank of learned filters,
  *        and (optionally) adds biases.
  *
- *   Caffe Helloolves by reduction to matrix multiplication. This achieves
+ *   Caffe convolves by reduction to matrix multiplication. This achieves
  *   high-throughput and generality of input and filter dimensions but comes at
  *   the cost of memory for matrices. This makes use of efficiency in BLAS.
  *
@@ -186,40 +186,40 @@ class BaseHelloolutionLayer : public Layer<Dtype> {
  *   the output channel N' columns of the output matrix.
  */
 template <typename Dtype>
-class HelloolutionLayer : public BaseHelloolutionLayer<Dtype> {
+class ConvolutionLayer : public BaseConvolutionLayer<Dtype> {
  public:
   /**
-   * @param param provides HelloolutionParameter Helloolution_param,
-   *    with HelloolutionLayer options:
+   * @param param provides ConvolutionParameter convolution_param,
+   *    with ConvolutionLayer options:
    *  - num_output. The number of filters.
    *  - kernel_size / kernel_h / kernel_w. The filter dimensions, given by
    *  kernel_size for square filters or kernel_h and kernel_w for rectangular
    *  filters.
    *  - stride / stride_h / stride_w (\b optional, default 1). The filter
    *  stride, given by stride_size for equal dimensions or stride_h and stride_w
-   *  for different strides. By default the Helloolution is dense with stride 1.
+   *  for different strides. By default the convolution is dense with stride 1.
    *  - pad / pad_h / pad_w (\b optional, default 0). The zero-padding for
-   *  Helloolution, given by pad for equal dimensions or pad_h and pad_w for
+   *  convolution, given by pad for equal dimensions or pad_h and pad_w for
    *  different padding. Input padding is computed implicitly instead of
    *  actually padding.
    *  - group (\b optional, default 1). The number of filter groups. Group
-   *  Helloolution is a method for reducing parameterization by selectively
+   *  convolution is a method for reducing parameterization by selectively
    *  connecting input and output channels. The input and output channel dimensions must be divisible
    *  by the number of groups. For group @f$ \geq 1 @f$, the
-   *  Helloolutional filters' input and output channels are separated s.t. each
+   *  convolutional filters' input and output channels are separated s.t. each
    *  group takes 1 / group of the input channels and makes 1 / group of the
    *  output channels. Concretely 4 input channels, 8 output channels, and
    *  2 groups separate input channels 1-2 and output channels 1-4 into the
    *  first group and input channels 3-4 and output channels 5-8 into the second
    *  group.
    *  - bias_term (\b optional, default true). Whether to have a bias.
-   *  - engine: Helloolution has CAFFE (matrix multiplication) and CUDNN (library
+   *  - engine: convolution has CAFFE (matrix multiplication) and CUDNN (library
    *    kernels + stream parallelism) engines.
    */
-  explicit HelloolutionLayer(const LayerParameter& param)
-      : BaseHelloolutionLayer<Dtype>(param) {}
+  explicit ConvolutionLayer(const LayerParameter& param)
+      : BaseConvolutionLayer<Dtype>(param) {}
 
-  virtual inline const char* type() const { return "Helloolution"; }
+  virtual inline const char* type() const { return "Convolution"; }
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
@@ -235,26 +235,26 @@ class HelloolutionLayer : public BaseHelloolutionLayer<Dtype> {
 };
 
 /**
- * @brief Helloolve the input with a bank of learned filters, and (optionally)
- *        add biases, treating filters and Helloolution parameters in the
- *        opposite sense as HelloolutionLayer.
+ * @brief Convolve the input with a bank of learned filters, and (optionally)
+ *        add biases, treating filters and convolution parameters in the
+ *        opposite sense as ConvolutionLayer.
  *
- *   HelloolutionLayer computes each output value by dotting an input window with
- *   a filter; DeHelloolutionLayer multiplies each input value by a filter
+ *   ConvolutionLayer computes each output value by dotting an input window with
+ *   a filter; DeconvolutionLayer multiplies each input value by a filter
  *   elementwise, and sums over the resulting output windows. In other words,
- *   DeHelloolutionLayer is HelloolutionLayer with the forward and backward passes
- *   reversed. DeHelloolutionLayer reuses HelloolutionParameter for its
- *   parameters, but they take the opposite sense as in HelloolutionLayer (so
+ *   DeconvolutionLayer is ConvolutionLayer with the forward and backward passes
+ *   reversed. DeconvolutionLayer reuses ConvolutionParameter for its
+ *   parameters, but they take the opposite sense as in ConvolutionLayer (so
  *   padding is removed from the output rather than added to the input, and
  *   stride results in upsampling rather than downsampling).
  */
 template <typename Dtype>
-class DeHelloolutionLayer : public BaseHelloolutionLayer<Dtype> {
+class DeconvolutionLayer : public BaseConvolutionLayer<Dtype> {
  public:
-  explicit DeHelloolutionLayer(const LayerParameter& param)
-      : BaseHelloolutionLayer<Dtype>(param) {}
+  explicit DeconvolutionLayer(const LayerParameter& param)
+      : BaseConvolutionLayer<Dtype>(param) {}
 
-  virtual inline const char* type() const { return "DeHelloolution"; }
+  virtual inline const char* type() const { return "Deconvolution"; }
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
@@ -271,29 +271,29 @@ class DeHelloolutionLayer : public BaseHelloolutionLayer<Dtype> {
 
 #ifdef USE_CUDNN
 /*
- * @brief cuDNN implementation of HelloolutionLayer.
- *        Fallback to HelloolutionLayer for CPU mode.
+ * @brief cuDNN implementation of ConvolutionLayer.
+ *        Fallback to ConvolutionLayer for CPU mode.
  *
- * cuDNN accelerates Helloolution through forward kernels for filtering and bias
+ * cuDNN accelerates convolution through forward kernels for filtering and bias
  * plus backward kernels for the gradient w.r.t. the filters, biases, and
  * inputs. Caffe + cuDNN further speeds up the computation through forward
  * parallelism across groups and backward parallelism across gradients.
  *
  * The CUDNN engine does not have memory overhead for matrix buffers. For many
  * input and filter regimes the CUDNN engine is faster than the CAFFE engine,
- * but for fully-Helloolutional models and large inputs the CAFFE engine can be
+ * but for fully-convolutional models and large inputs the CAFFE engine can be
  * faster as long as it fits in memory.
 */
 template <typename Dtype>
-class CuDNNHelloolutionLayer : public HelloolutionLayer<Dtype> {
+class CuDNNConvolutionLayer : public ConvolutionLayer<Dtype> {
  public:
-  explicit CuDNNHelloolutionLayer(const LayerParameter& param)
-      : HelloolutionLayer<Dtype>(param), handles_setup_(false) {}
+  explicit CuDNNConvolutionLayer(const LayerParameter& param)
+      : ConvolutionLayer<Dtype>(param), handles_setup_(false) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
-  virtual ~CuDNNHelloolutionLayer();
+  virtual ~CuDNNConvolutionLayer();
 
  protected:
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -307,7 +307,7 @@ class CuDNNHelloolutionLayer : public HelloolutionLayer<Dtype> {
   vector<cudnnTensorDescriptor_t> bottom_descs_, top_descs_;
   cudnnTensorDescriptor_t    bias_desc_;
   cudnnFilterDescriptor_t      filter_desc_;
-  vector<cudnnHelloolutionDescriptor_t> Hello_descs_;
+  vector<cudnnConvolutionDescriptor_t> conv_descs_;
   int bottom_offset_, top_offset_, bias_offset_;
   size_t workspaceSizeInBytes;
   void *workspace;
@@ -316,7 +316,7 @@ class CuDNNHelloolutionLayer : public HelloolutionLayer<Dtype> {
 
 /**
  * @brief A helper for image operations that rearranges image regions into
- *        column vectors.  Used by HelloolutionLayer to perform Helloolution
+ *        column vectors.  Used by ConvolutionLayer to perform convolution
  *        by matrix multiplication.
  *
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
@@ -522,6 +522,44 @@ class CuDNNPoolingLayer : public PoolingLayer<Dtype> {
 };
 #endif
 
+template <typename Dtype>
+class CropLayer : public Layer<Dtype> {
+ public:
+  explicit CropLayer(const LayerParameter& param)
+      : Layer<Dtype>(param) {}
+  virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+
+  virtual inline LayerParameter_LayerType type() const {
+    return LayerParameter_LayerType_CROP;
+  }
+  virtual inline int ExactNumBottomBlobs() const { return 2; }
+  virtual inline int ExactNumTopBlobs() const { return 1; }
+  virtual inline DiagonalAffineMap<Dtype> coord_map() {
+    vector<pair<Dtype, Dtype> > coefs;
+    coefs.push_back(make_pair(1, - crop_h_));
+    coefs.push_back(make_pair(1, - crop_w_));
+    return DiagonalAffineMap<Dtype>(coefs);
+  }
+
+ protected:
+  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+
+  int crop_h_, crop_w_;
+};
+
+
+
+
 /**
  * @brief Does spatial pyramid pooling on the input image
  *        by taking the max, average, etc. within regions
@@ -586,49 +624,4 @@ class SPPLayer : public Layer<Dtype> {
 
 }  // namespace caffe
 
-
-
-
-template <typename Dtype>
-class CropLayer : public Layer<Dtype> {
- public:
-  explicit CropLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
-  virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-
-  virtual inline LayerParameter_LayerType type() const {
-    return LayerParameter_LayerType_CROP;
-  }
-  virtual inline int ExactNumBottomBlobs() const { return 2; }
-  virtual inline int ExactNumTopBlobs() const { return 1; }
-  virtual inline DiagonalAffineMap<Dtype> coord_map() {
-    vector<pair<Dtype, Dtype> > coefs;
-    coefs.push_back(make_pair(1, - crop_h_));
-    coefs.push_back(make_pair(1, - crop_w_));
-    return DiagonalAffineMap<Dtype>(coefs);
-  }
-
- protected:
-  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-
-  int crop_h_, crop_w_;
-};
-
-}  // namespace caffe
-
-#endif
-
-// CAFFE_VISION_LAYERS_HPP_
-
-
-
+#endif  // CAFFE_VISION_LAYERS_HPP_
