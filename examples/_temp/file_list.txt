@@ -1,3 +1,5 @@
-./examples/images/fish-bike.jpg 0
-./examples/images/cat.jpg 0
-./examples/images/cat_gray.jpg 0
+/home/xizeng/proj/caff/examples/images/fish-bike.jpg 0
+/home/xizeng/proj/caff/examples/images/cat_01.jpg 0
+/home/xizeng/proj/caff/examples/images/cow.jpg 0
+/home/xizeng/proj/caff/examples/images/cat.jpg 0
+/home/xizeng/proj/caff/examples/images/cat_gray.jpg 0

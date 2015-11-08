@@ -20,7 +20,7 @@ import sys
 from subprocess import call 
 import scipy.io as sio
 sys.path.insert(0, caffe_root + 'python')
-
+import json
 import caffe
 import os
 # image_name = 'cat'
@@ -46,12 +46,25 @@ def Get_net(MODEL,image_name):
 	net = caffe.Net(deploy_proto,
 	                MODELFILE,
 	                caffe.TEST)
+	para = net.params
+	for keys,values in para.items():
+	  print(keys)
+	 # print(values.data)
+	#print para.key[::2]
+	#print para
+	#pprint(para,indent4)
+	#print(json.dumps(data,indent=4))
 	mean_file = caffe_root + 'python/caffe/imagenet/ilsvrc_2012_mean.npy'
 
 	# input preprocessing: 'data' is the name of the input blob == net.inputs[0]
+
 	transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
+	print('data layer shape:',net.blobs['data'].data.shape)
+
 	transformer.set_transpose('data', (2,0,1))
+
 	transformer.set_mean('data', np.load(mean_file).mean(1).mean(1)) 
+
 	# mean pixel
 
 	# the reference model operates on images in [0,255] range instead of [0,1]
@@ -63,11 +76,16 @@ def Get_net(MODEL,image_name):
 	# Let's start with a simple classification. We'll set a batch of 50 to demonstrate batch processing, even though we'll only be classifying one image. (Note that the batch size can also be changed on-the-fly.)
 
 	# set net to batch size of 50
-	net.blobs['data'].reshape(50,3,227,227)
+	# net.blobs['data'].reshape(50,3,227,227)
 
-
+	im = caffe.io.load_image(image_input)
+	if(MODEL=="VGG_ILSVRC_19_layers"):
+	  net.blobs['data'].reshape(10,3,224,224)
+	  im = caffe.io.resize_image(im, (224,224))
+	else:
+	  net.blobs['data'].reshape(50,3,227,227)
 	# Feed in the image (with some preprocessing) and classify with a forward pass.
-	net.blobs['data'].data[...] = transformer.preprocess('data', caffe.io.load_image(image_input))
+	net.blobs['data'].data[...] = transformer.preprocess('data', im)
 	out = net.forward()
 	# print("Predicted class is #{}.".format(out['prob'].argmax()))
 	# print net.blobs['data'].data[0]
