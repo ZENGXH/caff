@@ -4,15 +4,17 @@
 EXAMPLE=examples/cifar10
 DATA=data/cifar10
 DBTYPE=lmdb
-#MODEL=bvlc_reference_rcnn_ilsvrc13
-MODEL=VGG_ILSVRC_19_layers
+MODEL1=bvlc_reference_rcnn_ilsvrc13
+MODEL2=VGG_ILSVRC_19_layers
 
-#MODEL=AlexNet_SalObjSub
-IMAGE=cat
+MODEL3=AlexNet_SalObjSub
+IMAGE=cow
 
 echo "RUNNING $MODEL..."
 
-python net2mat.py  $MODEL $IMAGE
+python net2mat.py  $MODEL1 $IMAGE
+python net2mat.py  $MODEL2 $IMAGE
+python net2mat.py  $MODEL3 $IMAGE
 
 
 

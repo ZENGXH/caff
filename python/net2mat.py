@@ -21,7 +21,7 @@ def main(argv):
 	for keys,values in para.items():
 	  for i in range(0,len(values)):
 	    valSub = values[i]
-	    parames['key'+str(i)]=valSub.data
+	    parames['keys'+str(i)]=valSub.data
         matfile_para = caffe_root + 'python/_temp/paras'+MODEL+'_'+layer_type+'_'+image_name+'.mat'
 
         print('parameters collect,',type(parames))
