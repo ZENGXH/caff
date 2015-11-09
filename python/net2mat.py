@@ -11,7 +11,7 @@ def main(argv):
 	image_name = argv[2]
 	#image_name = 'cat'
 	# MODEL = 'VGG'
-	layer_type = 'all_layer'
+	layer_type = 'all'
 	caffe_root = '../'
 
 	layers = caffe.Read_net(MODEL)
@@ -21,8 +21,9 @@ def main(argv):
 	for keys,values in para.items():
 	  for i in range(0,len(values)):
 	    valSub = values[i]
-	    parames['keys'+str(i)]=valSub.data
-        matfile_para = caffe_root + 'python/_temp/paras'+MODEL+'_'+layer_type+'_'+image_name+'.mat'
+	    #a = 'keys'+
+	    parames[keys+str(i)]=valSub.data
+        matfile_para = caffe_root + 'python/_temp/'+MODEL+'_params_'+layer_type+'.mat'
 
         print('parameters collect,',type(parames))
         sio.savemat(matfile_para,parames)
