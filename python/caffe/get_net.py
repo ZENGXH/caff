@@ -83,7 +83,10 @@ def Get_net(MODEL,image_name):
 	  net.blobs['data'].reshape(10,3,224,224)
 	  im = caffe.io.resize_image(im, (224,224))
 	else:
-	  net.blobs['data'].reshape(50,3,227,227)
+	 # net.blobs['dnet.blobs['data'].data.shapeata'].reshape(50,3,227,227)
+	   shapeData = net.blobs['data'].data.shape
+	   print type(shapeData)
+  	   net.blobs['data'].reshape(shapeData[0],shapeData[1],shapeData[2],shapeData[3])
 	# Feed in the image (with some preprocessing) and classify with a forward pass.
 	net.blobs['data'].data[...] = transformer.preprocess('data', im)
 	out = net.forward()

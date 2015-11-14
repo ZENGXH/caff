@@ -28,5 +28,5 @@ def Read_net(MODEL):
 
     for layer in caffe_net.layer:
 	layers.append(layer)	
-    return layers
-
+    #return layers
+    return caffe_net
