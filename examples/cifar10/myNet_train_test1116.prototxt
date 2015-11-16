@@ -87,25 +87,25 @@ layer {
 }
 layer {
 	name: "relu1"
-	type: "RelU"
+	type: "ReLU"
 	bottom: "pool1"
 	top: "pool1"
 }
-layer{
-	name: "norm1"
-	type: "LRN"
-	bottom: "pool1"
-	top: "norm1"
-	lrn_param {
-		local_size: 5
-		alpha: 0.0001
-		beta: 0.75
-	}
-}
+#layer{
+#	name: "norm1"
+#	type: "LRN"
+#	bottom: "pool1"
+#	top: "norm1"
+#	lrn_param {
+#		local_size: 5
+#		alpha: 0.0001
+#		beta: 0.75
+#	}
+#}
 layer {
 	name: "conv2"
 	type: "Convolution"
-	bottom: "norm1"
+	bottom: "pool1"
 	top: "conv2"
 	param {
 		lr_mult: 1
@@ -144,21 +144,21 @@ layer {
 		stride: 2
 	}
 }
-layer{
-	name: "norm2"
-	type: "LRN"
-	bottom: "pool2"
-	top: "norm2"
-	lrn_param {
-		local_size: 5
-		alpha: 0.0001
-		beta: 0.75
-	}
-}
+#layer{
+#	name: "norm2"
+#	type: "LRN"
+#	bottom: "pool2"
+#	top: "norm2"
+#	lrn_param {
+#		local_size: 5
+#		alpha: 0.0001
+#		beta: 0.75
+#	}
+#}
 layer {
 	name: "conv3"
 	type: "Convolution"
-	bottom: "norm2"
+	bottom: "pool2"
 	top: "conv3"
 	param {
 		lr_mult: 1
